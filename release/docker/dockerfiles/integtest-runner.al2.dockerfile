@@ -8,7 +8,7 @@ RUN echo -e "[AdoptOpenJDK]\nname=AdoptOpenJDK\nbaseurl=http://adoptopenjdk.jfro
 
 # Add normal dependencies
 RUN yum update -y && \
-    yum install -y adoptopenjdk-14-hotspot curl python git tar net-tools procps-ng
+    yum install -y adoptopenjdk-14-hotspot which curl python git tar net-tools procps-ng
 
 # Add Dashboards dependencies
 RUN yum install -y xorg-x11-server-Xvfb gtk2-devel gtk3-devel libnotify-devel GConf2 nss libXScrnSaver alsa-lib
@@ -36,6 +36,9 @@ RUN groupadd -g 1000 opensearch && \
     useradd -u 1000 -g 1000 -d /usr/share/opensearch opensearch && \
     mkdir -p /usr/share/opensearch && \
     chown -R 1000:1000 /usr/share/opensearch
+
+# Environment variables JAVA
+RUN echo "export JAVA_HOME=`dirname $(dirname $(readlink -f $(which javac)))`" >> /etc/profile.d/java_home.sh
 
 # Change User
 USER 1000
