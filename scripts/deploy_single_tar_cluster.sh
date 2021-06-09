@@ -159,8 +159,8 @@ fi
 echo -e "\nStart OpenSearch"
 cd $DIR/opensearch
 nohup ./opensearch-tar-install.sh > opensearch.log 2>&1 &
-echo -e "\nSleep 30"
-sleep 30
+echo -e "\nSleep 40"
+sleep 40
 
 # Setup Dashboards
 echo -e "\nSetup Dashboards"
@@ -180,8 +180,8 @@ cd $DIR/opensearch-dashboards/bin
 nohup ./opensearch-dashboards > opensearch-dashboards.log 2>&1 &
 
 # Wait for start
-echo -e "\nSleep 30"
-sleep 30
+echo -e "\nSleep 20"
+sleep 20
 echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
 
