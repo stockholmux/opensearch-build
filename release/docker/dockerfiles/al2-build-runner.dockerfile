@@ -1,20 +1,23 @@
 FROM amazonlinux:2
-# replace shell with bash so we can source files
+
+# Replace shell with bash so we can source files
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Add AdoptOpenJDK Repo
 RUN echo -e "[AdoptOpenJDK]\nname=AdoptOpenJDK\nbaseurl=http://adoptopenjdk.jfrog.io/adoptopenjdk/rpm/centos/7/\$basearch\nenabled=1\ngpgcheck=1\ngpgkey=https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public" > /etc/yum.repos.d/adoptopenjdk.repo
 
+# Add normal dependencies
 RUN yum update -y && \
-    yum install -y adoptopenjdk-14-hotspot && \
-    yum install -y curl && \
-    yum install python -y && \
-    yum install git -y && \
-    yum install tar -y && \
-    yum install net-tools -y && \
-    yum install procps-ng -y && \
-    yum clean all && \
-    rm -rf /var/cache/yum/*
+    yum install -y adoptopenjdk-14-hotspot curl python git tar net-tools procps-ng
+
+# Add Dashboards dependencies
+RUN yum install -y xorg-x11-server-Xvfb gtk2-devel gtk3-devel libnotify-devel GConf2 nss libXScrnSaver alsa-lib
+
+# Add Notebook dependencies
+RUN yum install -y libnss3.so xorg-x11-fonts-100dpi xorg-x11-fonts-75dpi xorg-x11-utils xorg-x11-fonts-cyrillic xorg-x11-fonts-Type1 xorg-x11-fonts-misc fontconfig freetype && yum clean all
+
+# Remove yum cache
+RUN yum clean all && rm -rf /var/cache/yum/*
 
 # Setup Shared Memory
 RUN  chmod -R 777 /dev/shm
@@ -29,8 +32,8 @@ RUN groupadd -g 1000 opensearch && \
 USER 1000
 WORKDIR /usr/share/opensearch
 
+# Hard code node version and yarn version for now
 # nvm environment variables
-#ENV NVM_DIR $HOME/.nvm
 ENV NVM_DIR /usr/share/opensearch/.nvm
 ENV NODE_VERSION 10.23.1
 # install nvm

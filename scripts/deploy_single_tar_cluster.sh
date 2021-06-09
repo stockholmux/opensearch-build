@@ -136,13 +136,17 @@ echo -e "\nSetup OpenSearch"
 cd $DIR/opensearch && mkdir -p backup_snapshots
 $ROOT/opensearch-onetime-setup.sh $DIR/opensearch
 sed -i /^node.max_local_storage_nodes/d ./config/opensearch.yml
+# Required for IM
 echo "path.repo: [\"$PWD/backup_snapshots\"]" >> config/opensearch.yml
 echo "node.name: init-master" >> config/opensearch.yml
 echo "cluster.initial_master_nodes: [\"init-master\"]" >> config/opensearch.yml
 echo "cluster.name: opensearch-${VERSION}-linux-x64" >> config/opensearch.yml
 echo "network.host: 0.0.0.0" >> config/opensearch.yml
 echo "plugins.destination.host.deny_list: [\"10.0.0.0/8\", \"127.0.0.1\"]" >> config/opensearch.yml
+# Required for SQL
 echo "script.context.field.max_compilations_rate: 1000/1m" >> config/opensearch.yml
+# Required for Security
+echo "plugins.security.unsupported.restapi.allow_securityconfig_modification: true" >> config/opensearch.yml
 echo "webservice-bind-host = 0.0.0.0" >> plugins/opensearch-performance-analyzer/pa_config/performance-analyzer.properties
 if [ "$ENABLE_SECURITY" == "false" ]
 then
