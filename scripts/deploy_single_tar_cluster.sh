@@ -120,8 +120,8 @@ cd $DIR; echo; echo New Deployment: $DIR
 echo -e "\nDownloading Artifacts Now"
 OPENSEARCH_URL="https://artifacts.opensearch.org/${TYPE}/bundle/opensearch/${VERSION}/opensearch-${VERSION}-linux-x64.tar.gz"
 DASHBOARDS_URL="https://artifacts.opensearch.org/${TYPE}/bundle/opensearch-dashboards/${VERSION}/opensearch-dashboards-${VERSION}-linux-x64.tar.gz"
-echo $OPENSEARCH_URL
-echo $DASHBOARDS_URL
+echo -e "\t$OPENSEARCH_URL"
+echo -e "\t$DASHBOARDS_URL"
 curl -s -f $OPENSEARCH_URL -o opensearch.tgz || exit 1
 curl -s -f $DASHBOARDS_URL -o opensearch-dashboards.tgz || exit 1
 ls $DIR
@@ -150,7 +150,7 @@ echo "plugins.security.unsupported.restapi.allow_securityconfig_modification: tr
 echo "webservice-bind-host = 0.0.0.0" >> plugins/opensearch-performance-analyzer/pa_config/performance-analyzer.properties
 if [ "$ENABLE_SECURITY" == "false" ]
 then
-  echo Remove OpenSearch Security
+  echo -e "\tRemove OpenSearch Security"
   #./bin/opensearch-plugin remove opensearch-security
   echo "plugins.security.disabled: true" >> config/opensearch.yml
 fi
@@ -159,7 +159,7 @@ fi
 echo -e "\nStart OpenSearch"
 cd $DIR/opensearch
 nohup ./opensearch-tar-install.sh > opensearch.log 2>&1 &
-echo -e "\nSleep 40"
+echo -e "\tSleep 40"
 sleep 40
 
 # Setup Dashboards
@@ -168,7 +168,7 @@ cd $DIR/opensearch-dashboards
 echo "server.host: 0.0.0.0" >> config/opensearch_dashboards.yml
 if [ "$ENABLE_SECURITY" == "false" ]
 then
-  echo Remove Dashboards Security
+  echo -e "\tRemove Dashboards Security"
   ./bin/opensearch-dashboards-plugin remove security-dashboards
   sed -i /^opensearch_security/d config/opensearch_dashboards.yml
   sed -i 's/https/http/' config/opensearch_dashboards.yml
@@ -180,7 +180,7 @@ cd $DIR/opensearch-dashboards/bin
 nohup ./opensearch-dashboards > opensearch-dashboards.log 2>&1 &
 
 # Wait for start
-echo -e "\nSleep 20"
+echo -e "\tSleep 20"
 sleep 20
 echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
