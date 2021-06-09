@@ -25,6 +25,12 @@ RUN yum clean all && rm -rf /var/cache/yum/*
 # Setup Shared Memory
 RUN  chmod -R 777 /dev/shm
 
+# Must have values for ulimits on the server
+# sudo sysctl -w vm.max_map_count=262144
+# ulimit -n 65535
+# Docker /etc/sysconfig/docker has to have nofiles to 65535
+# OPTIONS="--default-ulimit nofile=65535:65535"
+
 # Create user group
 RUN groupadd -g 1000 opensearch && \
     useradd -u 1000 -g 1000 -d /usr/share/opensearch opensearch && \
