@@ -34,6 +34,28 @@ CURR_DIR=`pwd`
 ROOT=`dirname $(realpath $0)`; echo $ROOT; cd $ROOT
 PID_ARRAY=()
 
+function cleanup() {
+    echo ""
+    echo Clean Up
+    echo Kill Existing OpenSearch/Dashboards Process
+    (kill -9 `ps -ef | grep -i [o]pensearch | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear OpenSearch Process"
+    (kill -9 `ps -ef | grep -i [n]ode | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear Dashboards Process"
+    (kill -9 `ps -ef | grep -i [p]erformance | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear PerformanceAnalyzer Process"
+
+    echo Check PID List
+    (ps -ef | grep -i [o]pensearch) || echo -e "\tNo OpenSearch PIDs"
+    (ps -ef | grep -i [n]ode) || echo -e "\tNo Dashboards PIDs"
+    (ps -ef | grep -i [p]erformance) || echo -e "\tNo PerformanceAnalyzer PIDs"
+
+    echo Remove Old Deployments
+    if [ -z "$TMPDIR" ]
+    then
+      rm -rf /tmp/*_INTEGTEST_WORKSPACE
+    else
+      rm -rf $TMPDIR/*_INTEGTEST_WORKSPACE
+    fi
+}
+
 function usage() {
     echo ""
     echo "This script is used to deploy OpenSearch and OpenSearch-Dashboards single node cluster. It downloads the latest artifacts or specified ones per user, extract them, and deploy to the localhost to start the cluster."
@@ -51,11 +73,15 @@ function usage() {
 }
 
 
-while getopts ":ht:v:s:" arg; do
+while getopts ":hct:v:s:" arg; do
     case $arg in
         v)
             VERSION=$OPTARG
             ;;
+	c)
+            cleanup
+	    exit
+	    ;;
 	t)
             TYPE=$OPTARG
 	    ;;
@@ -171,7 +197,6 @@ echo Startup OpenSearch/Dashboards Complete
 
 # Trap the processes
 All_In_One ${PID_ARRAY[@]}
-
 
 
 
