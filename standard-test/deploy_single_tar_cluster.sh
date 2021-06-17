@@ -26,8 +26,13 @@
 # This script is to automate the single cluster deployment process of OpenSearch and OpenSearch-Dashboards
 
 set -e
+
+# Source lib
+. ../lib/shell/cluster.sh
+
 CURR_DIR=`pwd`
 ROOT=`dirname $(realpath $0)`; echo $ROOT; cd $ROOT
+PID_ARRAY=()
 
 function usage() {
     echo ""
@@ -40,43 +45,16 @@ function usage() {
     echo -e "-t TYPE\t(snapshots | releases) Specify the OpenSearch Type of artifacts to use, snapshots or releases."
     echo ""
     echo "Optional arguments:"
-    echo -e "-c \tCleanup Existing deployment only without new deployment."
     echo -e "-s ENABLE_SECURITY\t(true | false) Specify whether you want to enable security plugin or not. Default to true."
     echo -e "-h\tPrint this message."
     echo "--------------------------------------------------------------------------"
 }
 
-function cleanup() {
-    echo ""
-    echo Clean Up
-    echo Kill Existing OpenSearch/Dashboards Process
-    (kill -9 `ps -ef | grep -i [o]pensearch | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear OpenSearch Process"
-    (kill -9 `ps -ef | grep -i [n]ode | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear Dashboards Process"
-    (kill -9 `ps -ef | grep -i [p]erformance | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear PerformanceAnalyzer Process"
 
-    echo Check PID List
-    (ps -ef | grep -i [o]pensearch) || echo -e "\tNo OpenSearch PIDs"
-    (ps -ef | grep -i [n]ode) || echo -e "\tNo Dashboards PIDs"
-    (ps -ef | grep -i [p]erformance) || echo -e "\tNo PerformanceAnalyzer PIDs"
-
-    echo Remove Old Deployments
-    if [ -z "$TMPDIR" ]
-    then
-      rm -rf /tmp/*_INTEGTEST_WORKSPACE
-    else
-      rm -rf $TMPDIR/*_INTEGTEST_WORKSPACE
-    fi
-}
-
-
-while getopts ":hct:v:s:" arg; do
+while getopts ":ht:v:s:" arg; do
     case $arg in
         v)
             VERSION=$OPTARG
-            ;;
-        c)
-            cleanup
-	    exit
             ;;
 	t)
             TYPE=$OPTARG
@@ -102,19 +80,22 @@ done
 
 # Validate the required parameters to present
 if [ -z "$VERSION" ] || [ -z "$TYPE" ]; then
-  echo -e "\nERROR: You must specify '-v VERSION', '-t TYPE'"
-  usage
-  exit 1
+    echo -e "\nERROR: You must specify '-v VERSION', '-t TYPE'"
+    usage
+    exit 1
 else
-  echo VERSION:$VERSION TYPE:$TYPE ENABLE_SECURITY:$ENABLE_SECURITY
+    echo VERSION:$VERSION TYPE:$TYPE ENABLE_SECURITY:$ENABLE_SECURITY
 fi
 
+# Enable job control so we receive SIGCHLD when a child process terminates
+set -m
+
 # Setup Work Directory
-cleanup
 DIR=$(mktemp --suffix=_INTEGTEST_WORKSPACE -d)
+echo New workspace $DIR
+trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' TERM INT EXIT
 mkdir -p $DIR/opensearch $DIR/opensearch-dashboards
-cp opensearch-onetime-setup.sh $DIR/opensearch
-cd $DIR; echo; echo New Deployment: $DIR
+cd $DIR
 
 # Download Artifacts
 echo -e "\nDownloading Artifacts Now"
@@ -147,43 +128,50 @@ echo "plugins.destination.host.deny_list: [\"10.0.0.0/8\", \"127.0.0.1\"]" >> co
 echo "script.context.field.max_compilations_rate: 1000/1m" >> config/opensearch.yml
 # Required for Security
 echo "plugins.security.unsupported.restapi.allow_securityconfig_modification: true" >> config/opensearch.yml
+# Required for PA
 echo "webservice-bind-host = 0.0.0.0" >> plugins/opensearch-performance-analyzer/pa_config/performance-analyzer.properties
+# Security setup
 if [ "$ENABLE_SECURITY" == "false" ]
 then
-  echo -e "\tRemove OpenSearch Security"
-  #./bin/opensearch-plugin remove opensearch-security
-  echo "plugins.security.disabled: true" >> config/opensearch.yml
+    echo -e "\tRemove OpenSearch Security"
+    #./bin/opensearch-plugin remove opensearch-security
+    echo "plugins.security.disabled: true" >> config/opensearch.yml
 fi
-
-# Start OpenSearch
-echo -e "\nStart OpenSearch"
-cd $DIR/opensearch
-nohup ./opensearch-tar-install.sh > opensearch.log 2>&1 &
-echo -e "\tSleep 40"
-sleep 40
 
 # Setup Dashboards
 echo -e "\nSetup Dashboards"
 cd $DIR/opensearch-dashboards
 echo "server.host: 0.0.0.0" >> config/opensearch_dashboards.yml
+# Security Setup
 if [ "$ENABLE_SECURITY" == "false" ]
 then
-  echo -e "\tRemove Dashboards Security"
-  ./bin/opensearch-dashboards-plugin remove security-dashboards
-  sed -i /^opensearch_security/d config/opensearch_dashboards.yml
-  sed -i 's/https/http/' config/opensearch_dashboards.yml
+    echo -e "\tRemove Dashboards Security"
+    ./bin/opensearch-dashboards-plugin remove security-dashboards
+    sed -i /^opensearch_security/d config/opensearch_dashboards.yml
+    sed -i 's/https/http/' config/opensearch_dashboards.yml
 fi
 
-# Start Dashboards
-echo -e "\nStart Dashboards"
-cd $DIR/opensearch-dashboards/bin
-nohup ./opensearch-dashboards > opensearch-dashboards.log 2>&1 &
+# Start OpenSearch
+echo -e "\nStart OpenSearch, wait for 30 seconds"
+cd $DIR/opensearch
+./opensearch-tar-install.sh > opensearch.log 2>&1 &
+PID_ARRAY+=( $! )
+sleep 30
 
-# Wait for start
-echo -e "\tSleep 20"
-sleep 20
+# Start Dashboards
+echo -e "\nStart Dashboards, wait for 10 seconds"
+cd $DIR/opensearch-dashboards/bin
+./opensearch-dashboards > opensearch-dashboards.log 2>&1 &
+PID_ARRAY+=( $! )
+sleep 10
+
+# Outputs
 echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
+
+# Trap the processes
+All_In_One ${PID_ARRAY[@]}
+
 
 
 

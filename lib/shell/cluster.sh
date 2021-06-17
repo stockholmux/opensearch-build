@@ -26,6 +26,39 @@
 # This is a library of all OpenSearch/Dashboards cluster related functions
 # Source this file in your scripts
 
+function Wait_Process_PID() {
+    for pid_wait in $@
+    do
+        wait $pid_wait
+        echo "Process $pid_wait exited with code $?"
+    done
+}
 
+function Kill_Process_PID() {
+    for pid_kill in $@
+    do
+      if kill -0 $pid_kill > /dev/null 2>&1
+      then
+          echo "Process $pid_kill killed with code $?"
+          kill -TERM $pid_killD
+          wait $pid_kill
+      fi
+
+    done
+}
+
+function All_In_One() {
+    set -m
+    trap '{ Kill_Process_PID $@ ; }' TERM INT EXIT CHLD
+    Wait_Process_PID $@
+}
+
+#function Start_Process() {
+#    for process_start in $@
+#    do
+#        eval $process_start & 
+#        echo "Process $process_start starteded with code $?"
+#    done
+#}
 
 
