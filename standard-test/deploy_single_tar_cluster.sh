@@ -33,7 +33,6 @@ set -e
 ROOT=`dirname $(realpath $0)`; echo $ROOT; cd $ROOT
 CURR_DIR=`pwd`
 PID_PARENT_ARRAY=()
-CHILD_PID_ARRAY=()
 
 function cleanup() {
     echo
@@ -209,21 +208,9 @@ echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
 echo
 
+Trap_Cleanup_Working_Dir $DIR
 
-# Trap the processes
-# OpenSearch/Dashboards startup scripts have their own child processes
-# Need to wait for all of them and terminate all during the trap
-for pid_parent in ${PID_PARENT_ARRAY[@]}
-do
-    echo Parent $pid_parent Child `pgrep -P $pid_parent`
-    CHILD_PID_ARRAY+=( `pgrep -P $pid_parent` )
-done
-
-# Trap rm tmp working directory again with SIGCHLD
-set -m
-trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' CHLD
-
-Trap_Wait_Term ${CHILD_PID_ARRAY[@]} ${PID_PARENT_ARRAY[@]}
+Trap_Wait_Term ${PID_PARENT_ARRAY[@]}
 
 
 

@@ -40,14 +40,14 @@ function Kill_Process_PID() {
     # Reset all the signals in case all the trap check again due to Kill_Process_PID()
     #trap - $SIG_LIST
 
-    echo "Attempt to Kill Process with PID: $@"
+    echo "Attempt to Terminate Process with PID: $@"
     for pid_kill in $@
     do
       echo "Check PID $pid_kill Status"
       if kill -0 $pid_kill > /dev/null 2>&1
       then
           echo -e "\tProcess $pid_kill exist, gracefully terminated with code $?"
-          kill -TERM $pid_kill
+          pkill -TERM -P $pid_kill
           Wait_Process_PID $pid_kill
       else
           echo -e "\tProcess $pid_kill not exist"
@@ -56,15 +56,19 @@ function Kill_Process_PID() {
     done
 }
 
+function Trap_Cleanup_Working_Dir() {
+    set -m
+    trap '{ echo Removing workspace in "$@"; rm -rf -- "$@"; }' $SIG_LIST
+}
+
 function Trap_Wait_Term() {
     set -m
     echo "PID List: $@"
     echo "Trap and Wait for these signals: ${SIG_LIST}"
 
-    trap '{ echo Trapped SIGTERM; Kill_Process_PID $@ ; }' TERM
-    trap '{ echo Trapped SIGINT ; Kill_Process_PID $@ ; }' INT
-    trap '{ echo Trapped SIGEXIT; Kill_Process_PID $@ ; }' EXIT
-    trap '{ echo Trapped SIGCHLD; Kill_Process_PID $@ ; }' CHLD
+    trap '{ Kill_Process_PID $@ ; }' $SIT_LIST
+
+    Trap Cleanup_Working_Dir
 
     Wait_Process_PID $@
 }
