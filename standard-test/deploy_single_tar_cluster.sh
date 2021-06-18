@@ -218,8 +218,10 @@ trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' CHLD
 # Need to wait for all of them and terminate all during the trap
 for pid_parent in ${PID_PARENT_ARRAY[@]}
 do
-    CHILD_PID+=( pgrep -P $pid_parent )
+    echo print $pid_parent `pgrep -P $pid_parent`
+    CHILD_PID_ARRAY+=( pgrep -P $pid_parent )
 done
+
 Trap_And_Wait ${CHILD_PID_ARRAY[@]} ${PID_PARENT_ARRAY[@]}
 
 

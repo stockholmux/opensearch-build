@@ -38,7 +38,7 @@ function Wait_Process_PID() {
 
 function Kill_Process_PID() {
     # Reset all the signals in case all the trap check again due to Kill_Process_PID()
-    trap - $SIG_LIST
+    #trap - $SIG_LIST
 
     echo "Attempt to Kill Process with PID: $@"
     for pid_kill in $@
