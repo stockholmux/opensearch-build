@@ -94,12 +94,12 @@ while getopts ":hct:v:s:" arg; do
             exit 1
             ;;
         :)
-            echo "-${OPTARG} requires an argument"
+            echo -e "\nERROR: \"-${OPTARG}\" requires an argument"
             usage
             exit 1
             ;;
         ?)
-            echo "Invalid option: -${OPTARG}"
+            echo -e "\nError: Invalid option \"-${OPTARG}\""
             exit 1
             ;;
     esac
