@@ -35,8 +35,20 @@ ROOT=`dirname $(realpath $0)`; echo $ROOT; cd $ROOT
 PID_ARRAY=()
 
 function cleanup() {
-    echo ""
-    echo Clean Up
+    echo
+    echo "Caution: The script will attempt a complete cleanup of OpenSearch/Dashboards/PerformanceAnalyzer."
+    echo "         It will terminate all the related processes and remove the temporary working directories."
+    echo "         It may also terminate all the currently running nodejs processes."
+    echo
+    read -p "Are you still willing to continue the cleanup? (y/n) " -r
+    
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        echo "Clean Up Now"
+    else
+        exit 1
+    fi
+
     echo Kill Existing OpenSearch/Dashboards Process
     (kill -9 `ps -ef | grep -i [o]pensearch | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear OpenSearch Process"
     (kill -9 `ps -ef | grep -i [n]ode | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear Dashboards Process"
