@@ -68,7 +68,7 @@ function Trap_Wait_Term() {
 
     trap '{ Kill_Process_PID $@ ; }' $SIG_LIST
 
-    Trap_Cleanup_Working_Dir
+   # Trap_Cleanup_Working_Dir
 
     Wait_Process_PID $@
 }

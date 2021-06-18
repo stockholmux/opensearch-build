@@ -208,7 +208,8 @@ echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
 echo
 
-Trap_Cleanup_Working_Dir $DIR
+set -m
+trap '{ echo Removing workspace in "$@"; rm -rf -- "$@"; }' TERM INT EXIT CHLD
 
 Trap_Wait_Term ${PID_PARENT_ARRAY[@]}
 
