@@ -69,12 +69,5 @@ function Trap_And_Wait() {
     Wait_Process_PID $@
 }
 
-#function Start_Process() {
-#    for process_start in $@
-#    do
-#        eval $process_start & 
-#        echo "Process $process_start starteded with code $?"
-#    done
-#}
 
 
