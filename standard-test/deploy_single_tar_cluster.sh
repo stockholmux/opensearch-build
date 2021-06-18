@@ -32,12 +32,13 @@ set -e
 
 CURR_DIR=`pwd`
 ROOT=`dirname $(realpath $0)`; echo $ROOT; cd $ROOT
-PID_ARRAY=()
+PID_PARENT_ARRAY=()
+CHILD_PID_ARRAY=()
 
 function cleanup() {
     echo
-    echo "Caution: The script will attempt to completely cleanup OpenSearch/Dashboards/PerformanceAnalyzer on the server."
-    echo "         It will terminate all related processes and remove temporary working directories of previous runs."
+    echo "Caution: The script will attempt to completely cleanup OpenSearch/Dashboards on the server."
+    echo "         It will terminate all related processes and remove temp working directories of previous runs."
     echo "         It will also terminate all the currently running nodejs processes."
     echo
     read -p "Are you sure you want to continue the cleanup? (y/n) " -r
@@ -52,12 +53,10 @@ function cleanup() {
     echo Kill Existing OpenSearch/Dashboards Process
     (kill -9 `ps -ef | grep -i [o]pensearch | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear OpenSearch Process"
     (kill -9 `ps -ef | grep -i [n]ode | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear Dashboards Process"
-    (kill -9 `ps -ef | grep -i [p]erformance | awk '{print $2}'` > /dev/null 2>&1) || echo -e "\tClear PerformanceAnalyzer Process"
 
     echo Check PID List
     (ps -ef | grep -i [o]pensearch) || echo -e "\tNo OpenSearch PIDs"
     (ps -ef | grep -i [n]ode) || echo -e "\tNo Dashboards PIDs"
-    (ps -ef | grep -i [p]erformance) || echo -e "\tNo PerformanceAnalyzer PIDs"
 
     echo Remove Old Deployments
     if [ -z "$TMPDIR" ]
@@ -195,14 +194,14 @@ fi
 echo -e "\nStart OpenSearch, wait for 30 seconds"
 cd $DIR/opensearch
 ./opensearch-tar-install.sh > opensearch.log 2>&1 &
-PID_ARRAY+=( $! )
+PID_PARENT_ARRAY+=( $! )
 sleep 30
 
 # Start Dashboards
 echo -e "\nStart Dashboards, wait for 10 seconds"
 cd $DIR/opensearch-dashboards/bin
 ./opensearch-dashboards > opensearch-dashboards.log 2>&1 &
-PID_ARRAY+=( $! )
+PID_PARENT_ARRAY+=( $! )
 sleep 10
 
 # Outputs
@@ -212,7 +211,13 @@ echo Startup OpenSearch/Dashboards Complete
 echo
 
 # Trap the processes
-Trap_And_Wait ${PID_ARRAY[@]}
+# OpenSearch/Dashboards startup scripts have their own child processes
+# Need to wait for all of them and terminate all during the trap
+for pid_parent in ${PID_PARENT_ARRAY[@]}
+do
+    CHILD_PID+=( pgrep -P $pid_parent )
+done
+Trap_And_Wait ${CHILD_PID_ARRAY[@]} ${PID_PARENT_ARRAY[@]}
 
 
 
