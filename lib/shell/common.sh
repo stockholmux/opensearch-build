@@ -30,26 +30,38 @@ function Wait_Process_PID() {
     for pid_wait in $@
     do
         wait $pid_wait
-        echo "Process $pid_wait exited with code $?"
+        echo -e "\tProcess $pid_wait confirmed exited with code $?"
     done
 }
 
 function Kill_Process_PID() {
+    # Reset all the signals in case all the trap check again due to Kill_Process_PID()
+    trap - TERM INT EXIT CHLD
+
+    echo "Attempt to Kill Process with PID: $@"
     for pid_kill in $@
     do
+      echo "Check PID $pid_kill Status"
       if kill -0 $pid_kill > /dev/null 2>&1
       then
-          echo "Process $pid_kill killed with code $?"
-          kill -TERM $pid_killD
-          wait $pid_kill
+          echo -e "\tProcess $pid_kill exist, gracefully terminated with code $?"
+          kill -TERM $pid_kill
+          Wait_Process_PID $pid_kill
+      else
+          echo -e "\tProcess $pid_kill not exist"
       fi
 
     done
 }
 
-function All_In_One() {
+function Trap_And_Wait() {
     set -m
-    trap '{ Kill_Process_PID $@ ; }' TERM INT EXIT CHLD
+    echo "PID List: $@"
+    echo "Trap and Wait for these signals: ${SIG_ARRAY[@]}"
+    trap '{ echo Trapped SIGTERM; Kill_Process_PID $@ ; }' TERM
+    trap '{ echo Trapped SIGINT ; Kill_Process_PID $@ ; }' INT
+    trap '{ echo Trapped SIGEXIT; Kill_Process_PID $@ ; }' EXIT
+    trap '{ echo Trapped SIGCHLD; Kill_Process_PID $@ ; }' CHLD
     Wait_Process_PID $@
 }
 

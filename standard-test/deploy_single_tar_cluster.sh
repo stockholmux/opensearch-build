@@ -28,7 +28,7 @@
 set -e
 
 # Source lib
-. ../lib/shell/cluster.sh
+. ../lib/shell/common.sh
 
 CURR_DIR=`pwd`
 ROOT=`dirname $(realpath $0)`; echo $ROOT; cd $ROOT
@@ -196,7 +196,7 @@ echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
 
 # Trap the processes
-All_In_One ${PID_ARRAY[@]}
+Trap_And_Wait ${PID_ARRAY[@]}
 
 
 
