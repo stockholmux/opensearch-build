@@ -209,9 +209,6 @@ echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
 echo
 
-# Trap rm tmp working directory again with SIGCHLD
-set -m
-trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' CHLD
 
 # Trap the processes
 # OpenSearch/Dashboards startup scripts have their own child processes
@@ -222,7 +219,11 @@ do
     CHILD_PID_ARRAY+=( pgrep -P $pid_parent )
 done
 
-Trap_And_Wait ${CHILD_PID_ARRAY[@]} ${PID_PARENT_ARRAY[@]}
+# Trap rm tmp working directory again with SIGCHLD
+set -m
+trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' CHLD
+
+Trap_Wait_Term ${CHILD_PID_ARRAY[@]} ${PID_PARENT_ARRAY[@]}
 
 
 

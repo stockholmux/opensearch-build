@@ -56,7 +56,7 @@ function Kill_Process_PID() {
     done
 }
 
-function Trap_And_Wait() {
+function Trap_Wait_Term() {
     set -m
     echo "PID List: $@"
     echo "Trap and Wait for these signals: ${SIG_LIST}"
