@@ -215,8 +215,8 @@ echo
 # Need to wait for all of them and terminate all during the trap
 for pid_parent in ${PID_PARENT_ARRAY[@]}
 do
-    echo print $pid_parent `pgrep -P $pid_parent`
-    CHILD_PID_ARRAY+=( pgrep -P $pid_parent )
+    echo Parent $pid_parent Child `pgrep -P $pid_parent`
+    CHILD_PID_ARRAY+=( `pgrep -P $pid_parent` )
 done
 
 # Trap rm tmp working directory again with SIGCHLD
