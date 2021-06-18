@@ -100,6 +100,7 @@ while getopts ":hct:v:s:" arg; do
             ;;
         ?)
             echo -e "\nError: Invalid option \"-${OPTARG}\""
+            echo "$0 -h for usage details of this script"
             exit 1
             ;;
     esac
