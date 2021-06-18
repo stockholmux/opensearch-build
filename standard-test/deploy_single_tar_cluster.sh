@@ -95,7 +95,7 @@ while getopts ":hct:v:s:" arg; do
             ;;
         :)
             echo -e "\nERROR: \"-${OPTARG}\" requires an argument"
-            usage
+            echo "$0 -h for usage details of this script"
             exit 1
             ;;
         ?)
@@ -108,7 +108,7 @@ done
 # Validate the required parameters to present
 if [ -z "$VERSION" ] || [ -z "$TYPE" ] || [ -z "$ENABLE_SECURITY" ]; then
     echo -e "\nERROR: You must specify '-v VERSION', '-t TYPE', '-s ENABLE_SECURITY'"
-    usage
+    echo "$0 -h for usage details of this script"
     exit 1
 else
     echo VERSION:$VERSION TYPE:$TYPE ENABLE_SECURITY:$ENABLE_SECURITY
