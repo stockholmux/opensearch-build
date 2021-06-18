@@ -66,7 +66,7 @@ function Trap_Wait_Term() {
     echo "PID List: $@"
     echo "Trap and Wait for these signals: ${SIG_LIST}"
 
-    trap '{ Kill_Process_PID $@ ; }' $SIT_LIST
+    trap '{ Kill_Process_PID $@ ; }' $SIG_LIST
 
     Trap_Cleanup_Working_Dir
 
