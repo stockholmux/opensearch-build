@@ -65,9 +65,10 @@ function usage() {
     echo "Required arguments:"
     echo -e "-v VERSION\t(1.0.0 | 1.0.0-beta1 | etc.) Specify the OpenSearch version number that you are building. This will be used to download the artifacts."
     echo -e "-t TYPE\t(snapshots | releases) Specify the OpenSearch Type of artifacts to use, snapshots or releases."
+    echo -e "-s ENABLE_SECURITY\t(true | false) Specify whether you want to enable security plugin or not. Default to true."
     echo ""
     echo "Optional arguments:"
-    echo -e "-s ENABLE_SECURITY\t(true | false) Specify whether you want to enable security plugin or not. Default to true."
+    echo -e "-c\tComplete cleanup/ whipout of the entire previous working directories and any existing OpenSearch/Dashboard/PerformanceAnalyzer processes, could also terminate other processes using nodejs, use with caution."
     echo -e "-h\tPrint this message."
     echo "--------------------------------------------------------------------------"
 }
@@ -105,8 +106,8 @@ while getopts ":hct:v:s:" arg; do
 done
 
 # Validate the required parameters to present
-if [ -z "$VERSION" ] || [ -z "$TYPE" ]; then
-    echo -e "\nERROR: You must specify '-v VERSION', '-t TYPE'"
+if [ -z "$VERSION" ] || [ -z "$TYPE" ] || [ -z "$ENABLE_SECURITY" ]; then
+    echo -e "\nERROR: You must specify '-v VERSION', '-t TYPE', '-s ENABLE_SECURITY'"
     usage
     exit 1
 else
@@ -192,8 +193,10 @@ PID_ARRAY+=( $! )
 sleep 10
 
 # Outputs
+echo
 echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
+echo
 
 # Trap the processes
 Trap_And_Wait ${PID_ARRAY[@]}

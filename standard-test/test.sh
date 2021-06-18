@@ -11,6 +11,6 @@ sleep 10 &
 TESTARR+=( $! )
 
 #echo ${TESTARR[@]}
-All_In_One ${TESTARR[@]}
+Trap_And_Wait ${TESTARR[@]}
 
 #ps -ef | grep sleep
