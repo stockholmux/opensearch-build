@@ -26,6 +26,8 @@
 # This is a library of all OpenSearch/Dashboards cluster related functions
 # Source this file in your scripts
 
+SIG_LIST="TERM INT EXIT CHLD"
+
 function Wait_Process_PID() {
     for pid_wait in $@
     do
@@ -36,7 +38,7 @@ function Wait_Process_PID() {
 
 function Kill_Process_PID() {
     # Reset all the signals in case all the trap check again due to Kill_Process_PID()
-    trap - TERM INT EXIT CHLD
+    trap - $SIG_LIST
 
     echo "Attempt to Kill Process with PID: $@"
     for pid_kill in $@
@@ -57,11 +59,15 @@ function Kill_Process_PID() {
 function Trap_And_Wait() {
     set -m
     echo "PID List: $@"
-    echo "Trap and Wait for these signals: ${SIG_ARRAY[@]}"
-    trap '{ echo Trapped SIGTERM; Kill_Process_PID $@ ; }' TERM
-    trap '{ echo Trapped SIGINT ; Kill_Process_PID $@ ; }' INT
-    trap '{ echo Trapped SIGEXIT; Kill_Process_PID $@ ; }' EXIT
-    trap '{ echo Trapped SIGCHLD; Kill_Process_PID $@ ; }' CHLD
+    echo "Trap and Wait for these signals: ${SIG_LIST}"
+    for signal in $SIG_LIST
+    do
+        trap '{ echo Trapped $signal ; Kill_Process_PID $@ ; }' $signal
+    done
+   # trap '{ echo Trapped SIGTERM; Kill_Process_PID $@ ; }' TERM
+   # trap '{ echo Trapped SIGINT ; Kill_Process_PID $@ ; }' INT
+   # trap '{ echo Trapped SIGEXIT; Kill_Process_PID $@ ; }' EXIT
+   # trap '{ echo Trapped SIGCHLD; Kill_Process_PID $@ ; }' CHLD
     Wait_Process_PID $@
 }
 
