@@ -60,14 +60,12 @@ function Trap_And_Wait() {
     set -m
     echo "PID List: $@"
     echo "Trap and Wait for these signals: ${SIG_LIST}"
-    for signal in $SIG_LIST
-    do
-        trap '{ echo Trapped $signal ; Kill_Process_PID $@ ; }' $signal
-    done
-   # trap '{ echo Trapped SIGTERM; Kill_Process_PID $@ ; }' TERM
-   # trap '{ echo Trapped SIGINT ; Kill_Process_PID $@ ; }' INT
-   # trap '{ echo Trapped SIGEXIT; Kill_Process_PID $@ ; }' EXIT
-   # trap '{ echo Trapped SIGCHLD; Kill_Process_PID $@ ; }' CHLD
+
+    trap '{ echo Trapped SIGTERM; Kill_Process_PID $@ ; }' TERM
+    trap '{ echo Trapped SIGINT ; Kill_Process_PID $@ ; }' INT
+    trap '{ echo Trapped SIGEXIT; Kill_Process_PID $@ ; }' EXIT
+    trap '{ echo Trapped SIGCHLD; Kill_Process_PID $@ ; }' CHLD
+
     Wait_Process_PID $@
 }
 
