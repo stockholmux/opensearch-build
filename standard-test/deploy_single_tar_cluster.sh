@@ -30,8 +30,8 @@ set -e
 # Source lib
 . ../lib/shell/common.sh
 
-CURR_DIR=`pwd`
 ROOT=`dirname $(realpath $0)`; echo $ROOT; cd $ROOT
+CURR_DIR=`pwd`
 PID_PARENT_ARRAY=()
 CHILD_PID_ARRAY=()
 
@@ -61,9 +61,9 @@ function cleanup() {
     echo Remove Old Deployments
     if [ -z "$TMPDIR" ]
     then
-      rm -rf /tmp/*_INTEGTEST_WORKSPACE
+        rm -rf /tmp/*_INTEGTEST_WORKSPACE
     else
-      rm -rf $TMPDIR/*_INTEGTEST_WORKSPACE
+        rm -rf $TMPDIR/*_INTEGTEST_WORKSPACE
     fi
 }
 
@@ -126,13 +126,12 @@ else
     echo VERSION:$VERSION TYPE:$TYPE ENABLE_SECURITY:$ENABLE_SECURITY
 fi
 
-# Enable job control so we receive SIGCHLD when a child process terminates
-set -m
-
 # Setup Work Directory
+# Trap TERM INT EXIT only since CHLD will result in workdir get deleted before
+# the main OpenSearch/Dashboards process even start running
 DIR=$(mktemp --suffix=_INTEGTEST_WORKSPACE -d)
 echo New workspace $DIR
-trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' TERM INT EXIT CHLD
+trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' TERM INT EXIT
 mkdir -p $DIR/opensearch $DIR/opensearch-dashboards
 cd $DIR
 
@@ -209,6 +208,10 @@ echo
 echo Security Plugin: $ENABLE_SECURITY
 echo Startup OpenSearch/Dashboards Complete
 echo
+
+# Trap rm tmp working directory again with SIGCHLD
+set -m
+trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' CHLD
 
 # Trap the processes
 # OpenSearch/Dashboards startup scripts have their own child processes
