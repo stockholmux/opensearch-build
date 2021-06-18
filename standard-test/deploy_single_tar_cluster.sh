@@ -99,7 +99,7 @@ while getopts ":hct:v:s:" arg; do
             exit 1
             ;;
         ?)
-            echo -e "\nError: Invalid option '-${OPTARG}'"
+            echo -e "\nERROR: Invalid option '-${OPTARG}'"
             echo "'$0 -h' for usage details of this script"
             exit 1
             ;;
