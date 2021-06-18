@@ -36,11 +36,11 @@ PID_ARRAY=()
 
 function cleanup() {
     echo
-    echo "Caution: The script will attempt a complete cleanup of OpenSearch/Dashboards/PerformanceAnalyzer."
-    echo "         It will terminate all the related processes and remove the temporary working directories."
-    echo "         It may also terminate all the currently running nodejs processes."
+    echo "Caution: The script will attempt to completely cleanup OpenSearch/Dashboards/PerformanceAnalyzer on the server."
+    echo "         It will terminate all related processes and remove temporary working directories of previous runs."
+    echo "         It will also terminate all the currently running nodejs processes."
     echo
-    read -p "Are you still willing to continue the cleanup? (y/n) " -r
+    read -p "Are you sure you want to continue the cleanup? (y/n) " -r
     
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
