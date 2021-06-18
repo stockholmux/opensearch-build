@@ -133,7 +133,7 @@ set -m
 # Setup Work Directory
 DIR=$(mktemp --suffix=_INTEGTEST_WORKSPACE -d)
 echo New workspace $DIR
-trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' TERM INT EXIT
+trap '{ echo Removing workspace in "$DIR"; rm -rf -- "$DIR"; }' TERM INT EXIT CHLD
 mkdir -p $DIR/opensearch $DIR/opensearch-dashboards
 cd $DIR
 
