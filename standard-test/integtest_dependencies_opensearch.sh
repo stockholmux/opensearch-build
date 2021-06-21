@@ -30,12 +30,27 @@
 # $2 is the version number such as 1.0.0, 2.0.0
 # $3 is the version qualifier such as beta1, rc1
 
-if [ "$1" == "maven" ]
+if [ -z "$1" ] || [ -z "$2" ]
 then
-  ./gradlew publishToMavenLocal -Dbuild.version_qualifier=$2 -Dbuild.snapshot=false --console=plain
-elif [ "$1" == "cu" ]
+  echo "You must specify parameters 'ACTION VERSION [QUALIFIER]'"
+  echo "Example: $0 os 1.0.0"
+  echo "Example: $0 js 1.0.0 rc1"
+fi
+
+if [ "$1" == "os" ]
 then
-  ./gradlew publishToMavenLocal -Dopensearch.version=$2-$3 --console=plain
-elif [ "$1" == "js" ]
-  ./gradlew publishToMavenLocal -Dopensearch.version=$2-$3 -Dbuild.snapshot=false --console=plain
+    if [ -z "$3" ]
+    then
+        ./gradlew publishToMavenLocal -Dbuild.snapshot=false --console=plain
+    else
+        ./gradlew publishToMavenLocal -Dbuild.version_qualifier=$3 -Dbuild.snapshot=false --console=plain
+    fi
+elif [ "$1" == "cu" ] || [ "$1" == "js" ]
+then
+    if [ -z "$3" ]
+    then
+        ./gradlew publishToMavenLocal -Dopensearch.version=$2-$3 -Dbuild.snapshot=false --console=plain
+    else
+        ./gradlew publishToMavenLocal -Dopensearch.version=$2 -Dbuild.snapshot=false --console=plain
+    fi
 fi
